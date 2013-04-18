@@ -3,55 +3,114 @@ import npyscreen
 import logging
 
 from _api import Api
-logger = logging.getLogger('addview')
-hdlr = logging.FileHandler('addview.log')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
-logger.setLevel(logging.WARNING)
-
+from _config_loader import logger
 API = Api()
 
 
-class TemplateFormMixin(object):
-
-    def create(self):
-        self.template_name = self.add(npyscreen.TitleText, name='template_name')
-
-        choices = \
+class TemplateForm(npyscreen.Form):
+    def __init__(self, *args, **kwargs):
+        self._view_params = {}
+        self._tpl_creation_choices = \
             ['Create empty', 'Don\'t create'] + \
             ['copy {0}'.format(file_name)
               for file_name in sorted(API.get_template_filenames())]
-        self.template_creation = self.add(
+        super(TemplateForm, self).__init__(*args, **kwargs)
+
+    def create(self):
+        self._template_name = self.add(npyscreen.TitleText, name='template_name')
+
+        self._template_creation = self.add(
             npyscreen.TitleSelectOne,
             scroll_exit=True,
             max_height=7,
             name='Create template from:',
-            values=choices
+            values=self._tpl_creation_choices
+        )
+
+    def afterEditing(self):
+        self._save_parameters()
+        API.create_view(self._view_params)
+
+    def _save_parameters(self):
+        template_names = sorted(API.get_template_filenames())
+        template_create_from = \
+            '' if self._template_creation.value[0] == 0 else \
+            None if self._template_creation.value[0] == 1 else \
+            template_names[self._template_creation.value[0] - 2]
+
+        self._view_params.update(
+            {'template_name': self._template_name.value,
+             'template_create_from': template_create_from}
         )
 
 
-class ViewParamsForm(npyscreen.Form, TemplateFormMixin):
+class SingleObjectMixin(object):
+    BEGIN_ENTRY = 22
+
+    def create(self):
+        self.model = self.add(
+            npyscreen.TitleText,
+            name='model',
+            begin_entry_at=self.BEGIN_ENTRY
+        )
+        self.queryset = self.add(
+            npyscreen.TitleText,
+            name='queryset',
+            begin_entry_at=self.BEGIN_ENTRY
+        )
+        self.slug_field = self.add(
+            npyscreen.TitleText,
+            name='slug_field',
+            begin_entry_at=self.BEGIN_ENTRY
+        )
+        self.slug_url_kwarg = self.add(
+            npyscreen.TitleText,
+            name='slug_url_kwarg',
+            begin_entry_at=self.BEGIN_ENTRY
+        )
+        self.slug_url_kwarg = self.add(
+            npyscreen.TitleText,
+            name='pk_url_kwarg',
+            begin_entry_at=self.BEGIN_ENTRY
+        )
+        self.context_object_name = self.add(
+            npyscreen.TitleText,
+            name='context_object_name',
+            begin_entry_at=self.BEGIN_ENTRY
+        )
+
+    def _save_parameters(self):
+        pass
+
+
+class ViewParamsForm(TemplateForm):
     def create(self):
         self.myName = self.add(npyscreen.TitleText, name='Name')
-        TemplateFormMixin.create(self)
+        super(ViewParamsForm, self).create()
 
 
-class DetailViewParamsForm(npyscreen.Form, TemplateFormMixin):
+class DetailViewParamsForm(TemplateForm, SingleObjectMixin):
     def create(self):
-        self.model = self.add(npyscreen.TitleText, name='model')
-        TemplateFormMixin.create(self)
+        super(DetailViewParamsForm, self).create()
+        SingleObjectMixin.create(self)
+
+    def _save_parameters(self):
+        super(DetailViewParamsForm, self)._save_parameters()
+        self._view_params.update(
+            {'model': self.model.value}
+        )
 
 
-class TemplateViewParamsForm(npyscreen.Form, TemplateFormMixin):
+class TemplateViewParamsForm(TemplateForm):
     def create(self):
-        TemplateFormMixin.create(self)
+        super(TemplateViewParamsForm, self).create()
 
 
 class ListViewParamsForm(npyscreen.Form):
     def create(self):
         self.template_name = self.add(npyscreen.TitleText, name='template_name')
         self.model = self.add(npyscreen.TitleText, name='model')
+        super(DetailViewParamsForm, self).create()
 
 
 class FunctionViewParamsForm(npyscreen.Form):
@@ -82,16 +141,17 @@ class ViewTypeForm(npyscreen.Form):
 
     def afterEditing(self):
         try:
-            value = self.view_type.value[0]
+            view_type_value = self.view_type.value[0]
         except IndexError:
-            value = None
+            view_type_value = None
 
-        choice = self.choices[value]
+        choice = self.choices[view_type_value]
 
         self.parentApp.NEXT_ACTIVE_FORM = self.next_view.get(
             choice,
             None
         )
+        API.set_view_type(choice)
         logger.warn(self.parentApp.NEXT_ACTIVE_FORM)
 
 
