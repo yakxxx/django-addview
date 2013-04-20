@@ -37,7 +37,13 @@ class Api(object):
         priority_files = []
         normal_files = []
         sub_files = []
-        for _, subdirs, files in os.walk(template_dir):
+        for path, _, files in os.walk(template_dir, topdown=True):
+            subdirs = path[len(template_dir):].strip(os.path.sep)
+            if len(subdirs) > 0:
+                subdirs = subdirs.split(os.path.sep)
+            else:
+                subdirs = []
+
             if len(subdirs) > 0 and subdirs[0] == self.app_name:
                 priority_files += \
                     [os.path.join(*(subdirs + [f])) for f in files]
@@ -45,8 +51,7 @@ class Api(object):
                 sub_files += [os.path.join(*(subdirs + [f])) for f in files]
             else:
                 normal_files += [os.path.join(*(subdirs + [f])) for f in files]
-
-        return priority_files + normal_files + sub_files
+        return sorted(priority_files) + sorted(normal_files) + sorted(sub_files)
 
     def create_view(self, view_params):
         logger.warn('create_view')

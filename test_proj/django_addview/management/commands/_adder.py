@@ -1,6 +1,7 @@
 from ._config_loader import config, logger
 from ._utils import app_path, camel2under
 import os
+import shutil
 
 RESERVED_PARAMS = ('class_name')
 
@@ -73,6 +74,10 @@ class DefaultViewAdder(BaseViewAdder):
         view_file.close()
 
     def create_template(self):
+        create_from = self.params.get('template_create_from', None)
+        if create_from is None:
+            return
+
         tpl_dir = config['template_dir'].format(
             app_path=app_path(self.app_name),
             app_name=self.app_name
@@ -92,11 +97,15 @@ class DefaultViewAdder(BaseViewAdder):
             if not os.path.isdir(current_dir):
                 os.mkdir(current_dir)
 
-        if self.params.get('template_create_from', None) is None:
+        if create_from is None:
             return
-        elif self.params.get('template_create_from', None) is '':
-            open(os.path.join(tpl_dir, tpl_path)).close()
-
+        elif create_from is '':
+            open(os.path.join(tpl_dir, tpl_path), 'a').close()
+        else:
+            shutil.copy(
+                os.path.join(tpl_dir, create_from),
+                os.path.join(tpl_dir, tpl_path)
+            )
 
 
 

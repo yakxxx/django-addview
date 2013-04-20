@@ -3,8 +3,9 @@ import shutil
 import os
 import re
 
-from ._utils import app_path
 from ._adder import DefaultViewAdder
+from ._api import Api
+from ._utils import app_path
 from ._utils import camel2under
 from pprint import pprint
 
@@ -58,15 +59,86 @@ class TestCodeGeneration(unittest.TestCase):
     def test_camel2under(self):
         self.assertEqual(camel2under('MainProgramThread'), 'main_program_thread')
 
-    def test_create_template(self):
+    def test_create_empty_template(self):
+        shutil.rmtree(
+            os.path.join(app_path('test_app'), 'templates', 'books'),
+            ignore_errors=True
+        )
         adder2 = DefaultViewAdder(
             'test_app',
             'DetailView',
             {'template_name': 'books/xyz.html',
              'class_name': 'TestView',
-             'model': 'Book'
+             'model': 'Book',
+             'template_create_from': ''
             })
 
         adder2.create_template()
+
+        self.assertTrue(os.path.isdir(
+            os.path.join(app_path('test_app'), 'templates', 'books'))
+        )
+
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(
+                    app_path('test_app'),
+                    'templates',
+                    'books',
+                    'xyz.html'
+                )
+            )
+        )
+
+    def test_create_copy_template(self):
+        shutil.rmtree(
+            os.path.join(app_path('test_app'), 'templates', 'books'),
+            ignore_errors=True
+        )
+        adder2 = DefaultViewAdder(
+            'test_app',
+            'DetailView',
+            {'template_name': 'books/xyzaaa.html',
+             'class_name': 'TestView',
+             'model': 'Book',
+             'template_create_from': 'tpl1.html'
+            })
+
+        adder2.create_template()
+
+        self.assertTrue(os.path.isdir(
+            os.path.join(app_path('test_app'), 'templates', 'books'))
+        )
+
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(
+                    app_path('test_app'),
+                    'templates',
+                    'books',
+                    'xyzaaa.html'
+                )
+            )
+        )
+
+    def test_get_template_files(self):
+        a = Api()
+        a.set_app_name('test_app')
+        a.get_template_filenames()
+        self.assertListEqual(a.get_template_filenames(),
+            ['test_app/0.html', 'test_app/1.html', 'test_app/2.html',
+             'test_app/3.html', 'test_app/4.html', 'test_app/5.html',
+             'test_app/6.html', 'test_app/7.html', 'test_app/8.html',
+             'test_app/9.html', 'test_app/qqq.html', 'tpl1.html',
+             'tpl2.html', 'asd/11.html', 'books/xyz.html']
+        )
+
+
+
+
+
+
+
+
 
 

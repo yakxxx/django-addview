@@ -12,7 +12,7 @@ class TemplateForm(npyscreen.Form):
         self._tpl_creation_choices = \
             ['Create empty', 'Don\'t create'] + \
             ['copy {0}'.format(file_name)
-              for file_name in sorted(API.get_template_filenames())]
+              for file_name in API.get_template_filenames()]
         super(TemplateForm, self).__init__(*args, **kwargs)
 
     def create(self):
