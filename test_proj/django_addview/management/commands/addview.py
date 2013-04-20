@@ -1,9 +1,8 @@
 from django.core.management.base import BaseCommand
 import npyscreen
-import logging
 
-from _api import Api
-from _config_loader import logger
+from ._api import Api
+from ._config_loader import logger
 API = Api()
 
 
@@ -17,7 +16,10 @@ class TemplateForm(npyscreen.Form):
         super(TemplateForm, self).__init__(*args, **kwargs)
 
     def create(self):
-        self._template_name = self.add(npyscreen.TitleText, name='template_name')
+        self._template_name = self.add(
+            npyscreen.TitleText,
+            name='template_name'
+        )
 
         self._template_creation = self.add(
             npyscreen.TitleSelectOne,
@@ -182,6 +184,7 @@ class ListViewParamsForm(TemplateForm, MultipleObjectMixin):
     def _save_parameters(self):
         super(ListViewParamsForm, self)._save_parameters()
         MultipleObjectMixin._save_parameters(self)
+
 
 class FunctionViewParamsForm(npyscreen.Form):
     def create(self):

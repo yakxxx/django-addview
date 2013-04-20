@@ -1,5 +1,5 @@
 import os
-from _config_loader import config, logger
+from ._config_loader import config, logger
 from django.utils.importlib import import_module
 
 
