@@ -16,12 +16,17 @@ class TemplateForm(npyscreen.Form):
         super(TemplateForm, self).__init__(*args, **kwargs)
 
     def create(self):
-        self._template_name = self.add(
+        self.class_name = self.add(
+            npyscreen.TitleText,
+            name='ClassName'
+        )
+
+        self.template_name = self.add(
             npyscreen.TitleText,
             name='template_name'
         )
 
-        self._template_creation = self.add(
+        self.template_creation = self.add(
             npyscreen.TitleSelectOne,
             scroll_exit=True,
             max_height=7,
@@ -35,14 +40,15 @@ class TemplateForm(npyscreen.Form):
         API.create_view(self._view_params)
 
     def _save_parameters(self):
-        template_names = sorted(API.get_template_filenames())
+        template_names = API.get_template_filenames()
         template_create_from = \
-            '' if self._template_creation.value[0] == 0 else \
-            None if self._template_creation.value[0] == 1 else \
-            template_names[self._template_creation.value[0] - 2]
+            '' if self.template_creation.value[0] == 0 else \
+            None if self.template_creation.value[0] == 1 else \
+            template_names[self.template_creation.value[0] - 2]
 
         self._view_params.update(
-            {'template_name': self._template_name.value,
+            {'class_name': self.class_name.value,
+             'template_name': self.template_name.value,
              'template_create_from': template_create_from}
         )
 
@@ -151,7 +157,6 @@ class MultipleObjectMixin(object):
 
 class ViewParamsForm(TemplateForm):
     def create(self):
-        self.myName = self.add(npyscreen.TitleText, name='Name')
         super(ViewParamsForm, self).create()
 
 
