@@ -7,7 +7,7 @@ from ._config_loader import logger, tmp_logs
 from .forms.view_type import ViewTypeForm
 from .forms.view_params import DetailViewParamsForm, FunctionViewParamsForm, \
     ListViewParamsForm, TemplateViewParamsForm, ViewParamsForm
-
+from .forms.template_params import TemplateForm
 from .forms.urls_conf import UrlsForm
 
 
@@ -38,6 +38,11 @@ class MyApplication(npyscreen.NPSAppManaged):
             'UrlsForm',
             UrlsForm,
             name='Urls form'
+        )
+        self.addForm(
+            'TemplateForm',
+             TemplateForm,
+             name="Template form"
         )
 
 

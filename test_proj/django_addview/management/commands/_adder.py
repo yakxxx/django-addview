@@ -7,9 +7,10 @@ import shutil
 RESERVED_PARAMS = (
     'class_name',
     'template_create_from',
+    'template_dir_choice',
     'urls_to_edit',
     'url_pattern',
-    'url_name'
+    'url_name',
 )
 
 
@@ -93,10 +94,19 @@ class DefaultViewAdder(BaseViewAdder):
         if create_from is None:
             return
 
-        tpl_dir = config['local_template_dir'].format(
-            app_path=app_path(self.app_name),
-            app_name=self.app_name
-        )
+        tpl_dir = self._select_template_dir()
+        if not tpl_dir:
+            logger.error('No tpl dir set. Template not created.')
+            return
+
+        if not os.path.isdir(tpl_dir):
+            try:
+                os.mkdir(tpl_dir)
+            except:
+                logger.error(
+                    "Couldn't create dir: {0}."
+                    " Template not created".format(tpl_dir)
+                )
 
         tpl_path = self.params.get('template_name', '')
 
@@ -108,15 +118,24 @@ class DefaultViewAdder(BaseViewAdder):
 
         self._create_dirs_on_path(tpl_dir, tpl_path)
 
-        if create_from is None:
-            return
-        elif create_from is '':
+        if create_from is '':
             open(os.path.join(tpl_dir, tpl_path), 'a').close()
         else:
             shutil.copy(
                 os.path.join(tpl_dir, create_from),
                 os.path.join(tpl_dir, tpl_path)
             )
+
+    def _select_template_dir(self):
+        tpl_dir_choice = self.params.get('template_dir_choice', 'local')
+        if tpl_dir_choice == 'global':
+            tpl_dir = config['global_template_dir']
+        else:
+            tpl_dir = config['local_template_dir'].format(
+                app_path=app_path(self.app_name),
+                app_name=self.app_name
+            )
+        return tpl_dir
 
     def _create_dirs_on_path(self, main_dir, path):
         inner_dirs = path.split('/')[:-1]

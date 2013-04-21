@@ -1,7 +1,10 @@
 # Django settings for test_proj project.
 
+import os
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+SITE_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -159,3 +162,5 @@ LOGGING = {
 
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+GLOBAL_TEMPLATE_DIR = os.path.join(SITE_ROOT, 'templates')

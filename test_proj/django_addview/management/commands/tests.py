@@ -132,8 +132,9 @@ class TestCodeGeneration(unittest.TestCase):
             ['test_app/0.html', 'test_app/1.html', 'test_app/2.html',
              'test_app/3.html', 'test_app/4.html', 'test_app/5.html',
              'test_app/6.html', 'test_app/7.html', 'test_app/8.html',
-             'test_app/9.html', 'test_app/qqq.html', 'tpl1.html',
-             'tpl2.html', 'asd/11.html', 'books/xyz.html']
+             'test_app/9.html', 'test_app/global1.html', 'test_app/qqq.html',
+             'global0.html', 'tpl1.html', 'tpl2.html',
+             'asd/11.html', 'books/xyz.html']
         )
 
     def test_find_last_import_line(self):

@@ -20,6 +20,5 @@ PROJ_ROOT = os.path.dirname(os.path.realpath(django.__file__))
 
 config = {
     'local_template_dir': os.path.join('{app_path}', 'templates'),
-    'global_template_dir': settings.GLOBAL_TEMPLATE_DIR if
-        hasattr(settings, 'GLOBAL_TEMPLATE_DIR') else None
+    'global_template_dir': getattr(settings, 'GLOBAL_TEMPLATE_DIR', None)
 }

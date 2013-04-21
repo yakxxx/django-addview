@@ -29,13 +29,27 @@ class Api(object):
         assert hasattr(self, 'app_path'), \
             'You have to invoke set_app_name() before'
 
-        template_dir = config['local_template_dir'].format(
+        local_template_dir = config['local_template_dir'].format(
             app_path=self.app_path,
             app_name=self.app_name
         )
-        return self._get_template_filenames_from_dir(template_dir)
+        global_template_dir = config['global_template_dir']
+
+        local_templates = self._get_template_filenames_from_dir(
+            local_template_dir
+        )
+        global_templates = self._get_template_filenames_from_dir(
+            global_template_dir
+        )
+        ret = []
+        for i in xrange(3):
+            ret += sorted(local_templates[i] + global_templates[i])
+        return ret
 
     def _get_template_filenames_from_dir(self, template_dir):
+        if not template_dir:
+            return [], [], []
+
         priority_files = []
         normal_files = []
         sub_files = []
@@ -53,8 +67,8 @@ class Api(object):
                 sub_files += [os.path.join(*(subdirs + [f])) for f in files]
             else:
                 normal_files += [os.path.join(*(subdirs + [f])) for f in files]
-        return sorted(priority_files) + sorted(normal_files) + \
-                    sorted(sub_files)
+        return (sorted(priority_files), sorted(normal_files), \
+                    sorted(sub_files))
 
     def update_view_params(self, view_params):
         self.view_params.update(view_params)

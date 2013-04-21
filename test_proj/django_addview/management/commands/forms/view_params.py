@@ -22,20 +22,11 @@ class ViewForm(npyscreen.Form):
             name='template_name'
         )
 
-        self.template_creation = self.add(
-            npyscreen.TitleSelectOne,
-            scroll_exit=True,
-            max_height=7,
-            name='Create template from:',
-            values=self._tpl_creation_choices,
-            value=0
-        )
-
     def afterEditing(self):
         self._save_parameters()
         API.update_view_params(self._view_params)
         if self._view_params.get('class_name', None):
-            self.parentApp.NEXT_ACTIVE_FORM = 'UrlsForm'
+            self.parentApp.NEXT_ACTIVE_FORM = 'TemplateForm'
         else:
             npyscreen.notify_wait(
                 "You have to set ClassName",
@@ -43,16 +34,9 @@ class ViewForm(npyscreen.Form):
             )
 
     def _save_parameters(self):
-        template_names = API.get_template_filenames()
-        template_create_from = \
-            '' if self.template_creation.value[0] == 0 else \
-            None if self.template_creation.value[0] == 1 else \
-            template_names[self.template_creation.value[0] - 2]
-
         self._view_params.update(
             {'class_name': self.class_name.value,
-             'template_name': self.template_name.value,
-             'template_create_from': template_create_from}
+             'template_name': self.template_name.value, }
         )
 
 
