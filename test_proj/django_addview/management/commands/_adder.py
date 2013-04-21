@@ -98,7 +98,6 @@ class DefaultViewAdder(BaseViewAdder):
         if not tpl_dir:
             logger.error('No tpl dir set. Template not created.')
             return
-
         if not os.path.isdir(tpl_dir):
             try:
                 os.mkdir(tpl_dir)

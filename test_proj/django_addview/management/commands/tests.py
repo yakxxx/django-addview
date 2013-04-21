@@ -6,7 +6,47 @@ from ._adder import DefaultViewAdder
 from ._api import Api
 from ._utils import app_path
 from ._utils import camel2under
+from ._config_loader import config
 from pprint import pprint
+
+
+class TestTemplateDirCreation(unittest.TestCase):
+    def setUp(self):
+        self.adder = DefaultViewAdder(
+            'test_app',
+            'DetailView',
+            params={
+                'class_name': 'Asd',
+                'template_dir_choice': 'global',
+                'template_create_from': ''
+            }
+        )
+        shutil.move(
+            config['global_template_dir'],
+            os.path.join(
+                os.path.dirname(config['global_template_dir']),
+                'template_bac'
+            )
+        )
+
+    def tearDown(self):
+        shutil.move(
+            os.path.join(
+                os.path.dirname(config['global_template_dir']),
+                'template_bac'
+            ),
+            config['global_template_dir']
+        )
+
+    def test_create_templates_dir(self):
+        self.adder.create_template()
+        print config['global_template_dir']
+        self.assertTrue(os.path.isdir(config['global_template_dir']))
+        self.assertTrue(os.path.isdir(
+            os.path.join(config['global_template_dir'], 'test_app')
+        ))
+
+
 
 
 class TestCodeGeneration(unittest.TestCase):
