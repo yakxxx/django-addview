@@ -1,6 +1,7 @@
 from ._config_loader import config, logger
 from ._utils import app_path, camel2under
 import os
+import re
 import shutil
 
 RESERVED_PARAMS = ('class_name')
@@ -8,7 +9,11 @@ RESERVED_PARAMS = ('class_name')
 
 class BaseViewAdder(object):
 
-    def __init__(self, app_name, view_type, params):
+    def __init__(self, app_name=None, view_type=None, params=None):
+        assert(app_name is not None)
+        assert(view_type is not None)
+        assert(params is not None)
+
         self.app_name = app_name
         self.view_type = view_type
         self.params = params
@@ -26,8 +31,9 @@ class BaseViewAdder(object):
         code = self.generate_cbv_view()
         self.save_view(code)
         self.create_template()
-        self.update_url()
-        self.add_test()
+        self.update_urls()
+        code = self.generate_test()
+        self.add_test(code)
 
     def generate_cbv_view(self):
         raise NotImplementedError()
@@ -91,11 +97,7 @@ class DefaultViewAdder(BaseViewAdder):
             file_name = camel2under(class_name) + tpl_suffix + '.html'
             tpl_path = '{0}/{1}'.format(self.app_name, file_name)
 
-        inner_dirs = tpl_path.split('/')[:-1]
-        for i, _ in enumerate(inner_dirs):
-            current_dir = os.path.join(tpl_dir, *inner_dirs[:i + 1])
-            if not os.path.isdir(current_dir):
-                os.mkdir(current_dir)
+        self._create_dirs_on_path(tpl_dir, tpl_path)
 
         if create_from is None:
             return
@@ -107,6 +109,61 @@ class DefaultViewAdder(BaseViewAdder):
                 os.path.join(tpl_dir, tpl_path)
             )
 
+    def _create_dirs_on_path(self, main_dir, path):
+        inner_dirs = path.split('/')[:-1]
+        for i, _ in enumerate(inner_dirs):
+            current_dir = os.path.join(main_dir, *inner_dirs[:i + 1])
+            if not os.path.isdir(current_dir):
+                os.mkdir(current_dir)
 
+    def generate_test(self):
+        pass
 
+    def update_url(self):
+        f = open(os.path.join(app_path(self.app_name), 'urls.py'), 'w')
+        urls_content = f.read()
+        f.close()
+        urls_lines = urls_content.split('\n')
+        self._insert_import(urls_lines)
+
+    def _insert_import(self, lines):
+        import_text = 'from {app} import {cls}'.format(
+            app=self.app_name,
+            cls=self.params.get('class_name')
+        )
+        last_import_line = self._find_last_import(lines)
+        lines.insert(last_import_line + 1, import_text)
+
+    def _find_last_import(self, lines):
+        last_import_line = -1
+        for i, line in enumerate(lines):
+            if re.match('.*import.*', line):
+                last_import_line = i
+        return last_import_line
+
+    def _add_pattern(self, urls_content):
+        m = re.match(
+            r'.*urlpatterns\s*=\s*patterns\((?P<params>.*)\)',
+            urls_content,
+            re.DOTALL
+        )
+        params = m.group('params').strip()
+        if params[len(params) - 1] != ',':
+            params += ','
+        params += '\n{indent}'.format(indent=self.indent)
+        params += \
+            ('url(\'{regexp}\', {class_name}\.as_view()'
+            ', name={url_name}),\n').format(
+                regexp=self.params.get('url_pattern'),
+                class_name=self.params.get('class_name'),
+                url_name=self.params.get('url_name')
+            )
+        print params
+
+        return re.sub(
+            r'(.*urlpatterns\s*=\s*patterns\()(.*)(\))',
+            r'\1{0}\3'.format(params),
+            urls_content,
+            flags=re.DOTALL
+        )
 

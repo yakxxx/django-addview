@@ -6,14 +6,14 @@ from ._config_loader import logger
 API = Api()
 
 
-class TemplateForm(npyscreen.Form):
+class ViewForm(npyscreen.Form):
     def __init__(self, *args, **kwargs):
         self._view_params = {}
         self._tpl_creation_choices = \
             ['Create empty', 'Don\'t create'] + \
             ['copy {0}'.format(file_name)
               for file_name in API.get_template_filenames()]
-        super(TemplateForm, self).__init__(*args, **kwargs)
+        super(ViewForm, self).__init__(*args, **kwargs)
 
     def create(self):
         self.class_name = self.add(
@@ -37,7 +37,8 @@ class TemplateForm(npyscreen.Form):
 
     def afterEditing(self):
         self._save_parameters()
-        API.create_view(self._view_params)
+        API.update_view_params(self._view_params)
+        self.parentApp.NEXT_ACTIVE_FORM = 'UrlsForm'
 
     def _save_parameters(self):
         template_names = API.get_template_filenames()
@@ -155,12 +156,12 @@ class MultipleObjectMixin(object):
         )
 
 
-class ViewParamsForm(TemplateForm):
+class ViewParamsForm(ViewForm):
     def create(self):
         super(ViewParamsForm, self).create()
 
 
-class DetailViewParamsForm(TemplateForm, SingleObjectMixin):
+class DetailViewParamsForm(ViewForm, SingleObjectMixin):
     def create(self):
         super(DetailViewParamsForm, self).create()
         SingleObjectMixin.create(self)
@@ -170,7 +171,7 @@ class DetailViewParamsForm(TemplateForm, SingleObjectMixin):
         SingleObjectMixin._save_parameters(self)
 
 
-class TemplateViewParamsForm(TemplateForm):
+class TemplateViewParamsForm(ViewForm):
     def create(self):
         super(TemplateViewParamsForm, self).create()
 
@@ -181,7 +182,7 @@ class TemplateViewParamsForm(TemplateForm):
 #        )
 
 
-class ListViewParamsForm(TemplateForm, MultipleObjectMixin):
+class ListViewParamsForm(ViewForm, MultipleObjectMixin):
     def create(self):
         super(ListViewParamsForm, self).create()
         MultipleObjectMixin.create(self)
@@ -194,6 +195,28 @@ class ListViewParamsForm(TemplateForm, MultipleObjectMixin):
 class FunctionViewParamsForm(npyscreen.Form):
     def create(self):
         self.myName = self.add(npyscreen.TitleText, name='Name')
+
+
+class UrlsForm(npyscreen.Form):
+    def create(self):
+        self.url_regexp = self.add(
+            npyscreen.TitleText,
+            name='url pattern regexp',
+            begin_entry_at=22
+        )
+        self.url_name = self.add(
+            npyscreen.TitleText,
+            name='url pattern name',
+            begin_entry_at=22
+        )
+
+    def afterEditing(self):
+        API.update_view_params(
+            {'url_name': self.url_name.value,
+             'url_pattern': self.url_regexp.value
+            }
+        )
+#        API.add_view()
 
 
 class ViewTypeForm(npyscreen.Form):
@@ -256,6 +279,11 @@ class MyApplication(npyscreen.NPSAppManaged):
             'ListViewParamsForm',
             ListViewParamsForm,
             name='ListView Params'
+        )
+        self.addForm(
+            'UrlsForm',
+            UrlsForm,
+            name='Urls form'
         )
 
 

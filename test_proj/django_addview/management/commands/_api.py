@@ -1,12 +1,14 @@
 import os
-from ._config_loader import config, logger
 from django.utils.importlib import import_module
+from ._adder import DefaultViewAdder
+from ._config_loader import config, logger
 
 
 class Api(object):
 
     def __init__(self):
-        self.view_adder_cls = None
+        self.view_params = {}
+        self.view_adder_cls = DefaultViewAdder
 
     def set_app_name(self, app_name):
         self.app_name = app_name
@@ -15,20 +17,18 @@ class Api(object):
 #        self.app_path =
 
     def get_app_path(self):
-        assert(
-            getattr(self, 'app_path'),
+        assert hasattr(self, 'app_path'), \
             'You have to invoke set_app_name() before'
-        )
+
         return self.app_path
 
     def set_view_type(self, view_type_name):
         self.view_type = view_type_name
 
     def get_template_filenames(self):
-        assert(
-            getattr(self, 'app_path'),
+        assert hasattr(self, 'app_path'), \
             'You have to invoke set_app_name() before'
-        )
+
         template_dir = config['template_dir'].format(
             app_path=self.app_path,
             app_name=self.app_name
@@ -51,9 +51,19 @@ class Api(object):
                 sub_files += [os.path.join(*(subdirs + [f])) for f in files]
             else:
                 normal_files += [os.path.join(*(subdirs + [f])) for f in files]
-        return sorted(priority_files) + sorted(normal_files) + sorted(sub_files)
+        return sorted(priority_files) + sorted(normal_files) + \
+                    sorted(sub_files)
 
-    def create_view(self, view_params):
+    def update_view_params(self, view_params):
+        self.view_params.update(view_params)
         logger.warn('create_view')
         logger.warn(view_params)
         logger.warn(self.view_type)
+
+    def add_view(self):
+        view_adder = self.view_adder_cls(
+            app_name=self.app_name,
+            view_type=self.view_type,
+            params=self.view_params
+        )
+        view_adder.add_view()

@@ -15,9 +15,11 @@ class TestCodeGeneration(unittest.TestCase):
         self.adder = DefaultViewAdder(
             'test_app',
             'DetailView',
-            {'paginate_by': 10,
+            params={'paginate_by': 10,
              'class_name': 'TestView',
-             'model': 'Book'
+             'model': 'Book',
+             'url_name': "'urlik'",
+             'url_pattern': "r'^m/(?P<page>\d+)/$'"
             })
 
     def test_cbv_generation(self):
@@ -132,6 +134,32 @@ class TestCodeGeneration(unittest.TestCase):
              'test_app/9.html', 'test_app/qqq.html', 'tpl1.html',
              'tpl2.html', 'asd/11.html', 'books/xyz.html']
         )
+
+    def test_find_last_import_line(self):
+        self.assertEqual(
+            self.adder._find_last_import(
+                ['from a import b', 'import abc', 'from x import *',
+                 '', '', 'class Asd(object):', '    pass']
+            ),
+            2
+        )
+
+    def test_insert_import(self):
+        lines = ['from a import b', 'import abc', 'from x import *', \
+            '', '', 'class Asd(object):', '    pass']
+
+        self.adder._insert_import(
+            lines
+        )
+        self.assertEqual(lines[3], 'from test_app import TestView')
+
+    def test_find_patterns(self):
+        txt = '''urlpatterns = patterns('',
+    url(r'^$', MainView.as_view(), name=MainView.url_name),
+    url(r'^m/(?P<page>\d+)/$' , MainView.as_view(), name=MainView.url_name),
+    url(r'^poczekalnia/$', PendingView.as_view(), name=PendingView.url_name),
+)'''
+        print self.adder._add_pattern(txt), 'xxx'
 
 
 
