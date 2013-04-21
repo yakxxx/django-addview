@@ -2,6 +2,8 @@ import re
 from django.utils.importlib import import_module
 from django.conf import settings
 
+import_module(settings.ROOT_URLCONF)
+
 
 def app_path(app_name):
     import_module(app_name)
@@ -9,7 +11,6 @@ def app_path(app_name):
 
 
 def root_urlconf_path():
-    import_module(settings.ROOT_URLCONF)
     return __import__(settings.ROOT_URLCONF).__path__[0]
 
 

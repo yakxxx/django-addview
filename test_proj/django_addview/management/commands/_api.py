@@ -29,11 +29,13 @@ class Api(object):
         assert hasattr(self, 'app_path'), \
             'You have to invoke set_app_name() before'
 
-        template_dir = config['template_dir'].format(
+        template_dir = config['local_template_dir'].format(
             app_path=self.app_path,
             app_name=self.app_name
         )
+        return self._get_template_filenames_from_dir(template_dir)
 
+    def _get_template_filenames_from_dir(self, template_dir):
         priority_files = []
         normal_files = []
         sub_files = []
@@ -56,9 +58,9 @@ class Api(object):
 
     def update_view_params(self, view_params):
         self.view_params.update(view_params)
-        logger.warn('create_view')
-        logger.warn(view_params)
-        logger.warn(self.view_type)
+        logger.debug('create_view')
+        logger.debug(view_params)
+        logger.debug(self.view_type)
 
     def add_view(self):
         view_adder = self.view_adder_cls(
@@ -67,3 +69,5 @@ class Api(object):
             params=self.view_params
         )
         view_adder.add_view()
+
+API = Api()

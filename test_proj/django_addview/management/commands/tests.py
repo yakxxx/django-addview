@@ -194,14 +194,3 @@ url(r'^$', MainView.as_view(), name=MainView.url_name),
     url(r'^m/(?P<page>\d+)/$', TestView.as_view(), name='urlik'),
 )'''
         )
-
-
-
-
-
-
-
-
-#urlpatterns = patterns('',\n    url(r'^$', MainView.as_view(), name=MainView.url_name),\n    url(r'^m/(?P<page>\\d+)/$' , MainView.as_view(), name=MainView.url_name),\n    url(r'^poczekalnia/$', PendingView.as_view(), name=PendingView.url_name,\n    url(r'^m/(?P<page>\\d+)/$', TestView.as_view(), name='urlik'),\n
-
-#urlpatterns = patterns('',\n    url(r'^$', MainView.as_view(), name=MainView.url_name),\n    url(r'^m/(?P<page>\\d+)/$' , MainView.as_view(), name=MainView.url_name),\n    url(r'^poczekalnia/$', PendingView.as_view(), name=PendingView.url_name),\n    url(r'^m/(?P<page>\\d+)/$', TestView.as_view(), name='urlik'),\n)

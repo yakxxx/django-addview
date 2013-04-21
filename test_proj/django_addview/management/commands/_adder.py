@@ -7,7 +7,9 @@ import shutil
 RESERVED_PARAMS = (
     'class_name',
     'template_create_from',
-    'urls_to_edit'
+    'urls_to_edit',
+    'url_pattern',
+    'url_name'
 )
 
 
@@ -68,7 +70,7 @@ class DefaultViewAdder(BaseViewAdder):
         )
 
         for param_name, param_value in sorted(self.params.iteritems()):
-            if param_name in RESERVED_PARAMS:
+            if param_name in RESERVED_PARAMS or param_value == '':
                 continue
             code += "{indent}{param_name} = {param_value}\n".format(
                 indent=self.indent,
@@ -91,7 +93,7 @@ class DefaultViewAdder(BaseViewAdder):
         if create_from is None:
             return
 
-        tpl_dir = config['template_dir'].format(
+        tpl_dir = config['local_template_dir'].format(
             app_path=app_path(self.app_name),
             app_name=self.app_name
         )
@@ -138,18 +140,33 @@ class DefaultViewAdder(BaseViewAdder):
         else:
             return
 
-        logger.warn(urls_path)
-        f = open(urls_path, 'r')
-        urls_content = f.read()
-        f.close()
+        logger.debug(urls_path)
+        try:
+            f = open(urls_path, 'r')
+            urls_content = f.read()
+            f.close()
+        except IOError:
+            logger.error(
+                'Couldn\'t open file {0} for read. '
+                'No entry added to URLconf'.format(urls_path)
+            )
+            return
+
         urls_lines = urls_content.split('\n')
         self._insert_import(urls_lines)
         urls_content = "\n".join(urls_lines)
         urls_content = self._add_pattern(urls_content)
 
-        f = open(urls_path, 'w')
-        f.write(urls_content)
-        f.close()
+        try:
+            f = open(urls_path, 'w')
+            f.write(urls_content)
+            f.close()
+        except IOError:
+            logger.error(
+                'Couldn\'t open file {0} for write. '
+                'No entry added to URLconf'.format(urls_path)
+            )
+            return
 
     def _insert_import(self, lines):
         import_text = 'from {app}.views import {cls}'.format(
@@ -162,7 +179,7 @@ class DefaultViewAdder(BaseViewAdder):
     def _find_last_import(self, lines):
         last_import_line = -1
         for i, line in enumerate(lines):
-            if re.match('.*import.*', line):
+            if re.match('[^#]*import.*', line):
                 last_import_line = i
         return last_import_line
 
