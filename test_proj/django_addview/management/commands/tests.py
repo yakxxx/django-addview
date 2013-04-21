@@ -2,7 +2,6 @@ import django.test as unittest
 import shutil
 import os
 import re
-
 from ._adder import DefaultViewAdder
 from ._api import Api
 from ._utils import app_path
@@ -59,7 +58,9 @@ class TestCodeGeneration(unittest.TestCase):
         self.assertRegexpMatches(file_text, regexp)
 
     def test_camel2under(self):
-        self.assertEqual(camel2under('MainProgramThread'), 'main_program_thread')
+        self.assertEqual(
+            camel2under('MainProgramThread'), 'main_program_thread'
+        )
 
     def test_create_empty_template(self):
         shutil.rmtree(
@@ -151,7 +152,7 @@ class TestCodeGeneration(unittest.TestCase):
         self.adder._insert_import(
             lines
         )
-        self.assertEqual(lines[3], 'from test_app import TestView')
+        self.assertEqual(lines[3], 'from test_app.views import TestView')
 
     def test_find_patterns(self):
         txt = '''urlpatterns = patterns('',
@@ -159,7 +160,40 @@ class TestCodeGeneration(unittest.TestCase):
     url(r'^m/(?P<page>\d+)/$' , MainView.as_view(), name=MainView.url_name),
     url(r'^poczekalnia/$', PendingView.as_view(), name=PendingView.url_name),
 )'''
-        print self.adder._add_pattern(txt), 'xxx'
+        self.assertEqual(
+            self.adder._add_pattern(txt),
+                '''urlpatterns = patterns('',
+    url(r'^$', MainView.as_view(), name=MainView.url_name),
+    url(r'^m/(?P<page>\d+)/$' , MainView.as_view(), name=MainView.url_name),
+    url(r'^poczekalnia/$', PendingView.as_view(), name=PendingView.url_name),
+    url(r'^m/(?P<page>\d+)/$', TestView.as_view(), name='urlik'),
+)'''
+        )
+
+        #Same as above but params without trailing comma
+        txt = txt[:-3] + txt[-2:]
+
+        self.assertEqual(
+            self.adder._add_pattern(txt),
+                '''urlpatterns = patterns('',
+    url(r'^$', MainView.as_view(), name=MainView.url_name),
+    url(r'^m/(?P<page>\d+)/$' , MainView.as_view(), name=MainView.url_name),
+    url(r'^poczekalnia/$', PendingView.as_view(), name=PendingView.url_name),
+    url(r'^m/(?P<page>\d+)/$', TestView.as_view(), name='urlik'),
+)'''
+        )
+
+        #One liner
+        txt2 = ('''urlpatterns = patterns('','''
+                '''url(r'^$', MainView.as_view(), name=MainView.url_name),)''')
+
+        self.assertEqual(
+            self.adder._add_pattern(txt2),
+            '''urlpatterns = patterns('',\
+url(r'^$', MainView.as_view(), name=MainView.url_name),
+    url(r'^m/(?P<page>\d+)/$', TestView.as_view(), name='urlik'),
+)'''
+        )
 
 
 
@@ -168,5 +202,6 @@ class TestCodeGeneration(unittest.TestCase):
 
 
 
+#urlpatterns = patterns('',\n    url(r'^$', MainView.as_view(), name=MainView.url_name),\n    url(r'^m/(?P<page>\\d+)/$' , MainView.as_view(), name=MainView.url_name),\n    url(r'^poczekalnia/$', PendingView.as_view(), name=PendingView.url_name,\n    url(r'^m/(?P<page>\\d+)/$', TestView.as_view(), name='urlik'),\n
 
-
+#urlpatterns = patterns('',\n    url(r'^$', MainView.as_view(), name=MainView.url_name),\n    url(r'^m/(?P<page>\\d+)/$' , MainView.as_view(), name=MainView.url_name),\n    url(r'^poczekalnia/$', PendingView.as_view(), name=PendingView.url_name),\n    url(r'^m/(?P<page>\\d+)/$', TestView.as_view(), name='urlik'),\n)

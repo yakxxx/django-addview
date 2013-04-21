@@ -9,6 +9,7 @@ logger.addHandler(hdlr)
 logger.setLevel(logging.WARNING)
 
 PROJ_ROOT = os.path.dirname(os.path.realpath(django.__file__))
+print PROJ_ROOT, 'AAAA'
 
 config = {
     'template_dir': os.path.join('{app_path}', 'templates')

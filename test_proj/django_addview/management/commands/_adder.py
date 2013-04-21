@@ -1,10 +1,14 @@
 from ._config_loader import config, logger
-from ._utils import app_path, camel2under
+from ._utils import app_path, camel2under, root_urlconf_path
 import os
 import re
 import shutil
 
-RESERVED_PARAMS = ('class_name')
+RESERVED_PARAMS = (
+    'class_name',
+    'template_create_from',
+    'urls_to_edit'
+)
 
 
 class BaseViewAdder(object):
@@ -47,7 +51,10 @@ class BaseViewAdder(object):
     def update_url(self):
         raise NotImplementedError()
 
-    def add_test(self):
+    def generate_test(self):
+        raise NotImplementedError()
+
+    def add_test(self, code):
         raise NotImplementedError()
 
 
@@ -119,15 +126,33 @@ class DefaultViewAdder(BaseViewAdder):
     def generate_test(self):
         pass
 
-    def update_url(self):
-        f = open(os.path.join(app_path(self.app_name), 'urls.py'), 'w')
+    def add_test(self, code):
+        pass
+
+    def update_urls(self):
+        urls_to_edit = self.params.get('urls_to_edit', None)
+        if urls_to_edit == 'global':
+            urls_path = os.path.join(root_urlconf_path(), 'urls.py')
+        elif urls_to_edit == 'local':
+            urls_path = os.path.join(app_path(self.app_name), 'urls.py')
+        else:
+            return
+
+        logger.warn(urls_path)
+        f = open(urls_path, 'r')
         urls_content = f.read()
         f.close()
         urls_lines = urls_content.split('\n')
         self._insert_import(urls_lines)
+        urls_content = "\n".join(urls_lines)
+        urls_content = self._add_pattern(urls_content)
+
+        f = open(urls_path, 'w')
+        f.write(urls_content)
+        f.close()
 
     def _insert_import(self, lines):
-        import_text = 'from {app} import {cls}'.format(
+        import_text = 'from {app}.views import {cls}'.format(
             app=self.app_name,
             cls=self.params.get('class_name')
         )
@@ -152,13 +177,12 @@ class DefaultViewAdder(BaseViewAdder):
             params += ','
         params += '\n{indent}'.format(indent=self.indent)
         params += \
-            ('url(\'{regexp}\', {class_name}\.as_view()'
+            ('url({regexp}, {class_name}.as_view()'
             ', name={url_name}),\n').format(
                 regexp=self.params.get('url_pattern'),
                 class_name=self.params.get('class_name'),
                 url_name=self.params.get('url_name')
             )
-        print params
 
         return re.sub(
             r'(.*urlpatterns\s*=\s*patterns\()(.*)(\))',
