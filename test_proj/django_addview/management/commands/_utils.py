@@ -15,4 +15,5 @@ def root_urlconf_path():
 
 
 def camel2under(txt):
-    return re.sub(r'([A-Z])([a-z0-9])', r'_\1\2', txt).lower().strip('_')
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', txt)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()

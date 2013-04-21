@@ -21,7 +21,7 @@ class TestTemplateDirCreation(unittest.TestCase):
                 'template_create_from': ''
             }
         )
-        shutil.move(
+        os.rename(
             config['global_template_dir'],
             os.path.join(
                 os.path.dirname(config['global_template_dir']),
@@ -30,7 +30,9 @@ class TestTemplateDirCreation(unittest.TestCase):
         )
 
     def tearDown(self):
-        shutil.move(
+        if os.path.isdir(config['global_template_dir']):
+            shutil.rmtree(config['global_template_dir'])
+        os.rename(
             os.path.join(
                 os.path.dirname(config['global_template_dir']),
                 'template_bac'
@@ -40,68 +42,13 @@ class TestTemplateDirCreation(unittest.TestCase):
 
     def test_create_templates_dir(self):
         self.adder.create_template()
-        print config['global_template_dir']
         self.assertTrue(os.path.isdir(config['global_template_dir']))
         self.assertTrue(os.path.isdir(
             os.path.join(config['global_template_dir'], 'test_app')
         ))
 
 
-
-
-class TestCodeGeneration(unittest.TestCase):
-    def setUp(self):
-        self.adder = DefaultViewAdder(
-            'test_app',
-            'DetailView',
-            params={'paginate_by': 10,
-             'class_name': 'TestView',
-             'model': 'Book',
-             'url_name': "'urlik'",
-             'url_pattern': "r'^m/(?P<page>\d+)/$'"
-            })
-
-    def test_cbv_generation(self):
-        code = self.adder.generate_cbv_view()
-
-        self.assertRegexpMatches(code, r'TestView\(DetailView\):')
-        self.assertRegexpMatches(code, r'paginate_by = 10')
-        self.assertRegexpMatches(code, r'model = Book')
-
-        #check indents
-        for i, line in enumerate(code.split('\n')):
-            if i == 0 or line == '':
-                continue
-            self.assertRegexpMatches(line, r' {4}')
-
-    def test_save_view_to_file(self):
-        code = '''TestView(ListView):
-    model = Book
-    paginate_by = 10
-'''
-        shutil.copy2(
-            os.path.join(app_path('test_app'), 'views.py'),
-            os.path.join(app_path('test_app'), 'views.py.bac')
-        )
-
-        self.adder.save_view(code)
-        f = open(os.path.join(app_path('test_app'), 'views.py'))
-        file_text = f.read()
-        f.close()
-
-        shutil.copy2(
-            os.path.join(app_path('test_app'), 'views.py.bac'),
-            os.path.join(app_path('test_app'), 'views.py')
-        )
-
-        regexp = re.compile(r'.*{0}'.format(re.escape(code)), re.DOTALL)
-        self.assertRegexpMatches(file_text, regexp)
-
-    def test_camel2under(self):
-        self.assertEqual(
-            camel2under('MainProgramThread'), 'main_program_thread'
-        )
-
+class TestTemplateCreation(unittest.TestCase):
     def test_create_empty_template(self):
         shutil.rmtree(
             os.path.join(app_path('test_app'), 'templates', 'books'),
@@ -175,6 +122,64 @@ class TestCodeGeneration(unittest.TestCase):
              'test_app/9.html', 'test_app/global1.html', 'test_app/qqq.html',
              'global0.html', 'tpl1.html', 'tpl2.html',
              'asd/11.html', 'books/xyz.html']
+        )
+
+
+class TestCodeGeneration(unittest.TestCase):
+    def setUp(self):
+        self.adder = DefaultViewAdder(
+            'test_app',
+            'DetailView',
+            params={'paginate_by': 10,
+             'class_name': 'TestView',
+             'model': 'Book',
+             'url_name': "'urlik'",
+             'url_pattern': "r'^m/(?P<page>\d+)/$'"
+            })
+
+    def test_cbv_generation(self):
+        code = self.adder.generate_cbv_view()
+
+        self.assertRegexpMatches(code, r'TestView\(DetailView\):')
+        self.assertRegexpMatches(code, r'paginate_by = 10')
+        self.assertRegexpMatches(code, r'model = Book')
+
+        #check indents
+        for i, line in enumerate(code.split('\n')):
+            if i == 0 or line == '':
+                continue
+            self.assertRegexpMatches(line, r' {4}')
+
+    def test_save_view_to_file(self):
+        code = '''TestView(ListView):
+    model = Book
+    paginate_by = 10
+'''
+        shutil.copy2(
+            os.path.join(app_path('test_app'), 'views.py'),
+            os.path.join(app_path('test_app'), 'views.py.bac')
+        )
+
+        self.adder.save_view(code)
+        f = open(os.path.join(app_path('test_app'), 'views.py'))
+        file_text = f.read()
+        f.close()
+
+        shutil.copy2(
+            os.path.join(app_path('test_app'), 'views.py.bac'),
+            os.path.join(app_path('test_app'), 'views.py')
+        )
+
+        regexp = re.compile(r'.*{0}'.format(re.escape(code)), re.DOTALL)
+        self.assertRegexpMatches(file_text, regexp)
+
+    def test_camel2under(self):
+        self.assertEqual(
+            camel2under('MainProgramThread'), 'main_program_thread'
+        )
+        self.assertEqual(
+            camel2under('ImportURLLib'),
+            'import_url_lib'
         )
 
     def test_find_last_import_line(self):
