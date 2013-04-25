@@ -7,19 +7,24 @@ class ViewTypeForm(npyscreen.Form):
     next_view = {
         'View': 'ViewParamsForm',
         'DetailView': 'DetailViewParamsForm',
+        'CreateView': 'CreateViewParamsForm',
+        'DeleteView': 'DeleteViewParamsForm',
+        'FormView': 'FormViewParamsForm',
+        'UpdateView': 'UpdateViewParamsForm',
         'TemplateView': 'TemplateViewParamsForm',
         'ListView': 'ListViewParamsForm',
         'function_view': 'FunctionViewParamsForm'
     }
-    choices = ['View', 'DetailView', 'TemplateView',
-                'ListView', 'function_view'
+    choices = ['View', 'TemplateView', 'DetailView',
+                'ListView', 'CreateView', 'DeleteView',
+                'FormView', 'UpdateView', 'function_view'
               ]
 
     def create(self):
         self.view_type = self.add(
             npyscreen.TitleSelectOne,
             scroll_exit=True,
-            max_height=7,
+            max_height=14,
             value=0,
             name='View Type',
             values=self.choices

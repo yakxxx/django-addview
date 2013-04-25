@@ -12,7 +12,14 @@ class TemplateForm(npyscreen.Form):
               for file_name in API.get_template_filenames()]
         super(TemplateForm, self).__init__(*args, **kwargs)
 
+    def beforeEditing(self):
+        self.template_name.value = API.get_template_name()
+
     def create(self):
+        self.template_name = self.add(
+            npyscreen.TitleText,
+            name='template name',
+        )
         self.template_creation = self.add(
             npyscreen.TitleSelectOne,
             scroll_exit=True,

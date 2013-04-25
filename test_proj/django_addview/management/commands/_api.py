@@ -25,6 +25,16 @@ class Api(object):
     def set_view_type(self, view_type_name):
         self.view_type = view_type_name
 
+    def get_template_name(self):
+        view_adder = self.view_adder_cls(
+            app_name=self.app_name,
+            view_type=self.view_type,
+            params=self.view_params
+        )
+        logger.warn('QQQQQQQQQQQQQ')
+        logger.warn(self.view_params)
+        return view_adder.select_template_name()
+
     def get_template_filenames(self):
         assert hasattr(self, 'app_path'), \
             'You have to invoke set_app_name() before'

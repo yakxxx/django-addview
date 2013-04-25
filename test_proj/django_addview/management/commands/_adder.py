@@ -107,13 +107,7 @@ class DefaultViewAdder(BaseViewAdder):
                     " Template not created".format(tpl_dir)
                 )
 
-        tpl_path = self.params.get('template_name', '')
-
-        if not tpl_path:
-            tpl_suffix = self.params.get('template_name_suffix', '')
-            class_name = self.params.get('class_name')
-            file_name = camel2under(class_name) + tpl_suffix + '.html'
-            tpl_path = '{0}/{1}'.format(self.app_name, file_name)
+        tpl_path = self.select_template_name()
 
         self._create_dirs_on_path(tpl_dir, tpl_path)
 
@@ -135,6 +129,16 @@ class DefaultViewAdder(BaseViewAdder):
                 app_name=self.app_name
             )
         return tpl_dir
+
+    def select_template_name(self):
+        tpl_path = self.params.get('template_name', '')
+
+        if not tpl_path:
+            tpl_suffix = self.params.get('template_name_suffix', '')
+            class_name = self.params.get('class_name')
+            file_name = camel2under(class_name) + tpl_suffix + '.html'
+            tpl_path = '{0}/{1}'.format(self.app_name, file_name)
+        return tpl_path
 
     def _create_dirs_on_path(self, main_dir, path):
         inner_dirs = path.split('/')[:-1]
