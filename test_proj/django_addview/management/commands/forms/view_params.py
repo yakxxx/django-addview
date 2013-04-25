@@ -358,15 +358,14 @@ class UpdateViewParamsForm(ViewForm, SingleObjectMixin,
         FormMixin._create(self)
 
 
-class TemplateViewParamsForm(ViewForm):
+class TemplateViewParamsForm(ViewForm, TemplateMixin):
     def _create(self):
         super(TemplateViewParamsForm, self)._create()
+        TemplateMixin._create(self)
 
-#    def _save_parameters(self):
-#        super(TemplateViewParamsForm, self)._save_parameters()
-#        self._view_params.update(
-#            {'model': self.model.value}
-#        )
+    def _save_parameters(self):
+        super(TemplateViewParamsForm, self)._save_parameters()
+        TemplateMixin._save_parameters(self)
 
 
 class ListViewParamsForm(ViewForm, MultipleObjectMixin,

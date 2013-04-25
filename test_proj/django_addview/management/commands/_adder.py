@@ -70,14 +70,20 @@ class DefaultViewAdder(BaseViewAdder):
             view_type=self.view_type
         )
 
+        at_least_one_line = False
         for param_name, param_value in sorted(self.params.iteritems()):
             if param_name in RESERVED_PARAMS or param_value == '':
                 continue
+            at_least_one_line = True
             code += "{indent}{param_name} = {param_value}\n".format(
                 indent=self.indent,
                 param_name=param_name,
                 param_value=param_value
             )
+
+        if not at_least_one_line:
+            code += "{indent}pass\n".format(self.indent)
+
         code += '\n'
         return code
 
