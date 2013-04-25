@@ -5,6 +5,7 @@ from .._api import API
 class ViewForm(npyscreen.Form):
     def __init__(self, *args, **kwargs):
         self._view_params = {}
+        self._widgets = []
         self._tpl_creation_choices = \
             ['Create empty', 'Don\'t create'] + \
             ['copy {0}'.format(file_name)
@@ -12,10 +13,23 @@ class ViewForm(npyscreen.Form):
         super(ViewForm, self).__init__(*args, **kwargs)
 
     def create(self):
-        self.class_name = self.add(
+        self.add_later(
             npyscreen.TitleText,
-            name='ClassName'
+            attr_name='class_name',
+            name='ClassName',
+            show_order=1000
         )
+        self._create()
+        for priority, _args, _kwargs in sorted(self._widgets):
+            attr_name = _kwargs.pop('attr_name')
+            setattr(self, attr_name, self.add(*_args, **_kwargs))
+
+    def _create(self):
+        pass
+
+    def add_later(self, *args, **kwargs):
+        priority = kwargs.pop('show_order', 0)
+        self._widgets.append((-priority, args, kwargs))
 
     def afterEditing(self):
         self._save_parameters()
@@ -38,35 +52,44 @@ class ViewForm(npyscreen.Form):
 class SingleObjectMixin(object):
     BEGIN_ENTRY = 23
 
-    def create(self):
-        self.model = self.add(
+    def _create(self):
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='model',
             name='model',
+            show_order=100,
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.queryset = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='queryset',
             name='queryset',
+            show_order=20,
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.slug_field = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='slug_field',
             name='slug_field',
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.slug_url_kwarg = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='slug_url_kwarg',
             name='slug_url_kwarg',
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.pk_url_kwarg = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='pk_url_kwarg',
             name='pk_url_kwarg',
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.context_object_name = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='context_object_name',
             name='context_object_name',
+            show_order=10,
             begin_entry_at=self.BEGIN_ENTRY
         )
 
@@ -84,43 +107,53 @@ class SingleObjectMixin(object):
 class MultipleObjectMixin(object):
     BEGIN_ENTRY = 23
 
-    def create(self):
-        self.allow_empty = self.add(
+    def _create(self):
+        self.add_later(
             npyscreen.TitleSelectOne,
+            attr_name='allow_empty',
             name='allow_empty',
             values=['True', 'False'],
             value=0,
             max_height=2,
             scroll_exit=True,
+            show_order=1,
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.model = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='model',
             name='model',
+            show_order=100,
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.queryset = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='queryset',
             name='queryset',
+            show_order=20,
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.paginate_by = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='paginate_by',
             name='paginate_by',
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.page_kwarg = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='page_kwarg',
             name='page_kwarg',
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.paginator_class = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='paginator_class',
             name='paginator_class',
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.context_object_name = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='context_object_name',
             name='context_object_name',
             begin_entry_at=self.BEGIN_ENTRY
         )
@@ -140,19 +173,23 @@ class MultipleObjectMixin(object):
 class TemplateMixin(object):
     BEGIN_ENTRY = 23
 
-    def create(self):
-        self.content_type = self.add(
+    def _create(self):
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='content_type',
             name='content_type',
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.template_name = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='template_name',
             name='template_name',
-            begin_entry_at=self.BEGIN_ENTRY
+            begin_entry_at=self.BEGIN_ENTRY,
+            show_order=50
         )
-        self.response_class = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='response_class',
             name='response_class',
             begin_entry_at=self.BEGIN_ENTRY
         )
@@ -168,10 +205,11 @@ class TemplateMixin(object):
 class MultipleObjectTemplateMixin(TemplateMixin):
     BEGIN_ENTRY = 23
 
-    def create(self):
-        super(MultipleObjectTemplateMixin, self).create()
-        self.template_name_suffix = self.add(
+    def _create(self):
+        super(MultipleObjectTemplateMixin, self)._create()
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='template_name_suffix',
             name='template_name_suffix',
             begin_entry_at=self.BEGIN_ENTRY
         )
@@ -186,10 +224,11 @@ class MultipleObjectTemplateMixin(TemplateMixin):
 class SingleObjectTemplateMixin(MultipleObjectTemplateMixin):
     BEGIN_ENTRY = 23
 
-    def create(self):
-        super(SingleObjectTemplateMixin, self).create()
-        self.template_name_field = self.add(
+    def _create(self):
+        super(SingleObjectTemplateMixin, self)._create()
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='template_name_field',
             name='template_name_field',
             begin_entry_at=self.BEGIN_ENTRY
         )
@@ -204,19 +243,24 @@ class SingleObjectTemplateMixin(MultipleObjectTemplateMixin):
 class FormMixin(object):
     BEGIN_ENTRY = 23
 
-    def create(self):
-        self.form_class = self.add(
+    def _create(self):
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='form_class',
+            show_order=24,
             name='form_class',
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.initial = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            show_order=23,
+            attr_name='initial',
             name='initial',
             begin_entry_at=self.BEGIN_ENTRY
         )
-        self.success_url = self.add(
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='success_url',
             name='success_url',
             begin_entry_at=self.BEGIN_ENTRY
         )
@@ -230,16 +274,16 @@ class FormMixin(object):
 
 
 class ViewParamsForm(ViewForm):
-    def create(self):
-        super(ViewParamsForm, self).create()
+    def _create(self):
+        super(ViewParamsForm, self)._create()
 
 
 class DetailViewParamsForm(ViewForm, SingleObjectMixin,
             SingleObjectTemplateMixin):
-    def create(self):
-        super(DetailViewParamsForm, self).create()
-        SingleObjectMixin.create(self)
-        SingleObjectTemplateMixin.create(self)
+    def _create(self):
+        super(DetailViewParamsForm, self)._create()
+        SingleObjectMixin._create(self)
+        SingleObjectTemplateMixin._create(self)
 
     def _save_parameters(self):
         super(DetailViewParamsForm, self)._save_parameters()
@@ -250,11 +294,11 @@ class DetailViewParamsForm(ViewForm, SingleObjectMixin,
 class CreateViewParamsForm(ViewForm, SingleObjectMixin,
              SingleObjectTemplateMixin, FormMixin):
 
-    def create(self):
-        super(CreateViewParamsForm, self).create()
-        SingleObjectMixin.create(self)
-        SingleObjectTemplateMixin.create(self)
-        FormMixin.create(self)
+    def _create(self):
+        super(CreateViewParamsForm, self)._create()
+        SingleObjectMixin._create(self)
+        SingleObjectTemplateMixin._create(self)
+        FormMixin._create(self)
 
     def _save_parameters(self):
         super(CreateViewParamsForm, self)._save_parameters()
@@ -266,12 +310,13 @@ class CreateViewParamsForm(ViewForm, SingleObjectMixin,
 class DeleteViewParamsForm(ViewForm, SingleObjectMixin,
              SingleObjectTemplateMixin):
 
-    def create(self):
-        super(DeleteViewParamsForm, self).create()
-        SingleObjectMixin.create(self)
-        SingleObjectTemplateMixin.create(self)
-        self.success_url = self.add(
+    def _create(self):
+        super(DeleteViewParamsForm, self)._create()
+        SingleObjectMixin._create(self)
+        SingleObjectTemplateMixin._create(self)
+        self.add_later(
             npyscreen.TitleText,
+            attr_name='success_url',
             name='success_url',
             begin_entry_at=self.BEGIN_ENTRY
         )
@@ -286,10 +331,10 @@ class DeleteViewParamsForm(ViewForm, SingleObjectMixin,
 
 
 class FormViewParamsForm(ViewForm, TemplateMixin, FormMixin):
-    def create(self):
-        super(FormViewParamsForm, self).create()
-        TemplateMixin.create(self)
-        FormMixin.create(self)
+    def _create(self):
+        super(FormViewParamsForm, self)._create()
+        TemplateMixin._create(self)
+        FormMixin._create(self)
 
     def _save_parameters(self):
         super(FormViewParamsForm, self)._save_parameters()
@@ -300,22 +345,22 @@ class FormViewParamsForm(ViewForm, TemplateMixin, FormMixin):
 class UpdateViewParamsForm(ViewForm, SingleObjectMixin,
         SingleObjectTemplateMixin, FormMixin):
 
-    def create(self):
-        super(UpdateViewParamsForm, self).create()
-        SingleObjectMixin.create(self)
-        SingleObjectTemplateMixin.create(self)
-        FormMixin.create(self)
+    def _create(self):
+        super(UpdateViewParamsForm, self)._create()
+        SingleObjectMixin._create(self)
+        SingleObjectTemplateMixin._create(self)
+        FormMixin._create(self)
 
     def _save_parameters(self):
         super(UpdateViewParamsForm, self)._save_parameters()
         SingleObjectMixin._save_parameters(self)
         SingleObjectTemplateMixin._save_parameters(self)
-        FormMixin.create(self)
+        FormMixin._create(self)
 
 
 class TemplateViewParamsForm(ViewForm):
-    def create(self):
-        super(TemplateViewParamsForm, self).create()
+    def _create(self):
+        super(TemplateViewParamsForm, self)._create()
 
 #    def _save_parameters(self):
 #        super(TemplateViewParamsForm, self)._save_parameters()
@@ -324,16 +369,23 @@ class TemplateViewParamsForm(ViewForm):
 #        )
 
 
-class ListViewParamsForm(ViewForm, MultipleObjectMixin):
-    def create(self):
-        super(ListViewParamsForm, self).create()
-        MultipleObjectMixin.create(self)
+class ListViewParamsForm(ViewForm, MultipleObjectMixin,
+            MultipleObjectTemplateMixin):
+    def _create(self):
+        super(ListViewParamsForm, self)._create()
+        MultipleObjectMixin._create(self)
+        MultipleObjectTemplateMixin._create(self)
 
     def _save_parameters(self):
         super(ListViewParamsForm, self)._save_parameters()
         MultipleObjectMixin._save_parameters(self)
+        MultipleObjectTemplateMixin._save_parameters(self)
 
 
 class FunctionViewParamsForm(npyscreen.Form):
-    def create(self):
-        self.myName = self.add(npyscreen.TitleText, name='Name')
+    def __create(self):
+        self.add_later(
+            npyscreen.TitleText,
+            attr_name='myName',
+            name='Name'
+        )
