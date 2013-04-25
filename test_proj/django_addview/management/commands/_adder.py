@@ -82,7 +82,7 @@ class DefaultViewAdder(BaseViewAdder):
             )
 
         if not at_least_one_line:
-            code += "{indent}pass\n".format(self.indent)
+            code += "{indent}pass\n".format(indent=self.indent)
 
         code += '\n'
         return code
@@ -221,12 +221,17 @@ class DefaultViewAdder(BaseViewAdder):
         if params[len(params) - 1] != ',':
             params += ','
         params += '\n{indent}'.format(indent=self.indent)
+        if self.params.get('url_name', None):
+            tpl = ('url({regexp}, {class_name}.as_view()'
+                ', name={url_name}),\n')
+        else:
+            tpl = 'url({regexp}, {class_name}.as_view()),\n'
+
         params += \
-            ('url({regexp}, {class_name}.as_view()'
-            ', name={url_name}),\n').format(
-                regexp=self.params.get('url_pattern'),
+            tpl.format(
+                regexp=self.params.get('url_pattern', ''),
                 class_name=self.params.get('class_name'),
-                url_name=self.params.get('url_name')
+                url_name=self.params.get('url_name', '')
             )
 
         return re.sub(

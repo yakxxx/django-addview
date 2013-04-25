@@ -44,8 +44,7 @@ class ViewForm(npyscreen.Form):
 
     def _save_parameters(self):
         self._view_params.update(
-            {'class_name': self.class_name.value,
-             'template_name': self.template_name.value, }
+            {'class_name': self.class_name.value}
         )
 
 
