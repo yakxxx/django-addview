@@ -53,9 +53,13 @@ class SingleObjectMixin(object):
 
     def _create(self):
         self.add_later(
-            npyscreen.TitleText,
+            npyscreen.TitleSelectOne,
             attr_name='model',
+            values=['Leave empty'] + API.get_model_names(),
+            value=0,
+            max_height=5,
             name='model',
+            scroll_exit=True,
             show_order=100,
             begin_entry_at=self.BEGIN_ENTRY
         )
@@ -94,7 +98,7 @@ class SingleObjectMixin(object):
 
     def _save_parameters(self):
         self._view_params.update(
-            {'model': self.model.value,
+            {'model': ([''] + API.get_model_names())[self.model.value[0]],
              'queryset': self.queryset.value,
              'slug_field': self.slug_field.value,
              'slug_url_kwarg': self.slug_url_kwarg.value,
@@ -119,9 +123,13 @@ class MultipleObjectMixin(object):
             begin_entry_at=self.BEGIN_ENTRY
         )
         self.add_later(
-            npyscreen.TitleText,
+            npyscreen.TitleSelectOne,
             attr_name='model',
+            values=['Leave empty'] + API.get_model_names(),
+            value=0,
+            max_height=5,
             name='model',
+            scroll_exit=True,
             show_order=100,
             begin_entry_at=self.BEGIN_ENTRY
         )
@@ -159,8 +167,8 @@ class MultipleObjectMixin(object):
 
     def _save_parameters(self):
         self._view_params.update(
-            {'model': self.model.value,
-             'allow_empty': self.allow_empty.value,
+            {'model': ([''] + API.get_model_names())[self.model.value[0]],
+             'allow_empty': ['True', 'False'][self.allow_empty.value[0]],
              'queryset': self.queryset.value,
              'paginate_by': self.paginate_by.value,
              'page_kwarg': self.page_kwarg.value,

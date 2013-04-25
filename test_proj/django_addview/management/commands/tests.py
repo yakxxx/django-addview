@@ -124,6 +124,15 @@ class TestTemplateCreation(unittest.TestCase):
              'asd/11.html', 'books/xyz.html']
         )
 
+    def test_get_models(self):
+        a = Api()
+        a.set_app_name('test_app')
+        self.assertListEqual(
+            a.get_model_names(),
+            ['Book', 'Shelf']
+        )
+
+
 
 class TestCodeGeneration(unittest.TestCase):
     def setUp(self):

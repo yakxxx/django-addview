@@ -1,4 +1,5 @@
 import os
+import re
 from django.utils.importlib import import_module
 from ._adder import DefaultViewAdder
 from ._config_loader import config, logger
@@ -25,13 +26,31 @@ class Api(object):
     def set_view_type(self, view_type_name):
         self.view_type = view_type_name
 
+    def get_model_names(self):
+        model_path = os.path.join(self.get_app_path(), 'models.py')
+        if not os.path.isfile(model_path):
+            return []
+
+        try:
+            f = open(model_path, 'r')
+            models = f.read()
+            f.close()
+        except IOError:
+            logger.error('Couln\'t open {0}.'.format(model_path))
+            return []
+
+        return [m.group(1) for m in re.finditer(
+            '\s*class (.*?)\(.*?\):',
+            models,
+            re.MULTILINE
+        )]
+
     def get_template_name(self):
         view_adder = self.view_adder_cls(
             app_name=self.app_name,
             view_type=self.view_type,
             params=self.view_params
         )
-        logger.warn('QQQQQQQQQQQQQ')
         logger.warn(self.view_params)
         return view_adder.select_template_name()
 
