@@ -37,6 +37,7 @@ class BaseViewAdder(object):
     def add_cbv_view(self):
         code = self.generate_cbv_view()
         self.save_view(code)
+        self.update_view_imports()
         self.create_template()
         self.update_urls()
         code = self.generate_test()
@@ -88,12 +89,57 @@ class DefaultViewAdder(BaseViewAdder):
         return code
 
     def save_view(self, code):
-        view_file = open(
-            os.path.join(app_path(self.app_name), 'views.py'),
-            'a'
-        )
-        view_file.write('\n\n' + code)
-        view_file.close()
+        try:
+            view_file = open(
+                os.path.join(app_path(self.app_name), 'views.py'),
+                'a'
+            )
+            view_file.write('\n' + code)
+            view_file.close()
+        except IOError:
+            logger.error('Couldn\'t open {0}. View code not added'.format(
+                os.path.join(app_path(self.app_name), 'views.py')
+            ))
+            return
+
+    def update_view_imports(self):
+        try:
+            view_file = open(
+                os.path.join(app_path(self.app_name), 'views.py'),
+                'r'
+            )
+            view_content = view_file.read()
+            view_file.close()
+        except IOError:
+            logger.error('Couldn\'t open {0}. Imports not added'.format(
+                os.path.join(app_path(self.app_name), 'views.py')
+            ))
+            return
+
+        lines = view_content.split('\n')
+
+        self._insert_import(lines, 'django.views.generic', self.view_type)
+
+        if self.params.get('model', None):
+            self._insert_import(
+                lines,
+                _from='{0}.models'.format(self.app_name),
+                _import=self.params['model']
+            )
+
+        try:
+            view_file = open(
+                os.path.join(app_path(self.app_name), 'views.py'),
+                'w'
+            )
+            view_file.write('\n'.join(lines))
+            view_file.close()
+        except IOError:
+            logger.error(
+                'Couldn\'t open {0} for writing. Imports not added'.format(
+                    os.path.join(app_path(self.app_name), 'views.py')
+                )
+            )
 
     def create_template(self):
         create_from = self.params.get('template_create_from', None)
@@ -181,7 +227,11 @@ class DefaultViewAdder(BaseViewAdder):
             return
 
         urls_lines = urls_content.split('\n')
-        self._insert_import(urls_lines)
+        self._insert_import(
+            urls_lines,
+            '{0}.views'.format(self.app_name),
+             self.params.get('class_name')
+        )
         urls_content = "\n".join(urls_lines)
         urls_content = self._add_pattern(urls_content)
 
@@ -196,13 +246,31 @@ class DefaultViewAdder(BaseViewAdder):
             )
             return
 
-    def _insert_import(self, lines):
-        import_text = 'from {app}.views import {cls}'.format(
-            app=self.app_name,
-            cls=self.params.get('class_name')
+    def _insert_import(self, lines, _from, _import):
+        import_text = 'from {0} import {1}'.format(
+            _from,
+            _import
         )
+
+        if self._is_imported(
+            '\n'.join(lines),
+            _from,
+            _import
+        ):
+            return
+
         last_import_line = self._find_last_import(lines)
         lines.insert(last_import_line + 1, import_text)
+
+    def _is_imported(self, view_content, _from, _import):
+        regs = [
+            r'import\s*{0}'.format(re.escape(_import)),
+            r'from {0}\s*import\s*\*'.format(re.escape(_from))
+        ]
+        if any([re.search(reg, view_content) for reg in regs]):
+            return True
+        else:
+            return False
 
     def _find_last_import(self, lines):
         last_import_line = -1

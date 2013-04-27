@@ -133,6 +133,98 @@ class TestTemplateCreation(unittest.TestCase):
         )
 
 
+class TestViewCreation(unittest.TestCase):
+
+    def setUp(self):
+        shutil.copy2(
+            os.path.join(app_path('test_app'), 'views.py'),
+            os.path.join(app_path('test_app'), 'views.py.bac')
+        )
+
+        self.adder = DefaultViewAdder(
+            'test_app',
+            'DetailView',
+            params={'paginate_by': 10,
+             'class_name': 'TestView',
+             'model': 'Book',
+             'url_name': "'urlik'",
+             'url_pattern': "r'^m/(?P<page>\d+)/$'"
+            }
+        )
+
+    def tearDown(self):
+        shutil.copy2(
+            os.path.join(app_path('test_app'), 'views.py.bac'),
+            os.path.join(app_path('test_app'), 'views.py')
+        )
+
+    def test_save_view_to_file(self):
+        code = '''TestView(ListView):
+    model = Book
+    paginate_by = 10
+'''
+        self.adder.save_view(code)
+        f = open(os.path.join(app_path('test_app'), 'views.py'))
+        file_text = f.read()
+        f.close()
+
+        regexp = re.compile(r'.*{0}'.format(re.escape(code)), re.DOTALL)
+        self.assertRegexpMatches(file_text, regexp)
+
+    def test_update_import(self):
+        self.adder.update_view_imports()
+        f = open(os.path.join(app_path('test_app'), 'views.py'))
+        file_text = f.read()
+        f.close()
+
+        reg = re.compile(
+            r'from django.views.generic import DetailView',
+            re.MULTILINE
+        )
+        self.assertRegexpMatches(file_text, reg)
+
+        reg2 = re.compile(
+            r'from test_app.models import Book',
+            re.MULTILINE
+        )
+        self.assertRegexpMatches(file_text, reg2)
+
+        self.adder.update_view_imports()
+        self.adder.update_view_imports()
+        self.adder.update_view_imports()
+
+        f = open(os.path.join(app_path('test_app'), 'views.py'))
+        file_text = f.read()
+        f.close()
+
+        self.assertEqual(len(re.findall(reg, file_text)), 1)
+        self.assertEqual(len(re.findall(reg2, file_text)), 1)
+
+    def test_is_imported(self):
+        self.assertTrue(self.adder._is_imported(
+            '\n\nfrom test_app.models import Book\n\n',
+            'test_app.models',
+            'Book'
+        ))
+
+    def test_update_existing_import(self):
+        f = open(os.path.join(app_path('test_app'), 'views.py'), 'r+')
+        cont = f.read()
+        cont = 'from django.views.generic import *\n' + cont
+        f.write(cont)
+        f.close()
+
+        self.adder.update_view_imports()
+        f = open(os.path.join(app_path('test_app'), 'views.py'))
+        file_text = f.read()
+        f.close()
+
+        reg = re.compile(
+            r'from django.views.generic import DetailView',
+            re.MULTILINE
+        )
+        self.assertFalse(reg.match(file_text))
+
 
 class TestCodeGeneration(unittest.TestCase):
     def setUp(self):
@@ -159,29 +251,6 @@ class TestCodeGeneration(unittest.TestCase):
                 continue
             self.assertRegexpMatches(line, r' {4}')
 
-    def test_save_view_to_file(self):
-        code = '''TestView(ListView):
-    model = Book
-    paginate_by = 10
-'''
-        shutil.copy2(
-            os.path.join(app_path('test_app'), 'views.py'),
-            os.path.join(app_path('test_app'), 'views.py.bac')
-        )
-
-        self.adder.save_view(code)
-        f = open(os.path.join(app_path('test_app'), 'views.py'))
-        file_text = f.read()
-        f.close()
-
-        shutil.copy2(
-            os.path.join(app_path('test_app'), 'views.py.bac'),
-            os.path.join(app_path('test_app'), 'views.py')
-        )
-
-        regexp = re.compile(r'.*{0}'.format(re.escape(code)), re.DOTALL)
-        self.assertRegexpMatches(file_text, regexp)
-
     def test_camel2under(self):
         self.assertEqual(
             camel2under('MainProgramThread'), 'main_program_thread'
@@ -205,7 +274,9 @@ class TestCodeGeneration(unittest.TestCase):
             '', '', 'class Asd(object):', '    pass']
 
         self.adder._insert_import(
-            lines
+            lines,
+            _from='test_app.views',
+            _import='TestView'
         )
         self.assertEqual(lines[3], 'from test_app.views import TestView')
 
