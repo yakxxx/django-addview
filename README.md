@@ -28,4 +28,4 @@ Django-addview provides you a simple ncurses based gui to add new class-based or
 ![screenshot 1](/_screenshots/addview1.png)
 ![screenshot 2](/_screenshots/addview2.png)
 ![screenshot 3](/_screenshots/addview3.png)
-![screenshot 4](/_screenshots/addview3.png)
+![screenshot 4](/_screenshots/addview4.png)
