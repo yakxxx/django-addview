@@ -1,4 +1,3 @@
-# django-addview
 # Add views to Django app automatically
 
 ## What it does?
