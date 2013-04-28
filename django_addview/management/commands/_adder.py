@@ -214,10 +214,10 @@ class DefaultViewAdder(BaseViewAdder):
         return tpl_dir
 
     def select_template_name(self):
-        tpl_path = self.params.get('template_name', '')
-
+        tpl_path = self.params.get('template_name', '').strip("`'\"")
         if not tpl_path:
             tpl_suffix = self.params.get('template_name_suffix', '')
+            tpl_suffix = tpl_suffix.strip("`'\"")
             class_name = self.params.get('class_name', None)
             function_name = self.params.get('function_name', None)
 
