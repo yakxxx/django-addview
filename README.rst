@@ -1,12 +1,12 @@
-Add views to Django app automatically
-=====================================
+Add views to Django app automatically - django-addview
+======================================================
 
 What it does?
 -------------
 
 Can't remember Class-Based-Views parameters? Are you tired of
 reiterating the same mundane steps while adding a new view? Try
-django-addview.
+**django-addview**.
 
 How it works?
 -------------
