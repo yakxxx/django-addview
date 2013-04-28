@@ -3,10 +3,8 @@ python:
   - "2.7"
   - "3.2"
   - "3.3"
-  # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
-  # maintainers to fix their pypy-dev package.
 # command to install dependencies
 install:
-  - pip install -r requirements.txt --use-mirrors
+  - sudo pip install -r requirements.txt --use-mirrors
 # command to run tests
-script: run_tests.sh
+script: "run_tests.sh"
