@@ -69,8 +69,8 @@ class MyApplication(npyscreen.NPSAppManaged):
 
 
 class Command(BaseCommand):
-    args = ''
-    help = 'Closes the specified poll for voting'
+    args = '<app_name>'
+    help = 'Helps you to add new view to your app'
 
     def handle(self, app_name, **kwargs):
         import atexit
