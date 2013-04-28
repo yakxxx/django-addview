@@ -7,12 +7,12 @@ from StringIO import StringIO
 tmp_logs = StringIO()
 
 logger = logging.getLogger('addview')
-hdlr = logging.FileHandler('addview.log')
+#hdlr = logging.FileHandler('addview.log')
 hdlr2 = logging.StreamHandler(tmp_logs)
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
+#hdlr.setFormatter(formatter)
 hdlr2.setFormatter(formatter)
-logger.addHandler(hdlr)
+#logger.addHandler(hdlr)
 logger.addHandler(hdlr2)
 logger.setLevel(logging.INFO)
 
