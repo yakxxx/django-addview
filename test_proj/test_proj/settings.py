@@ -124,7 +124,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_addview',
-    'django_nose'
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
@@ -160,7 +159,5 @@ LOGGING = {
     }
 }
 
-
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 ADDVIEW_GLOBAL_TEMPLATE_DIR = os.path.join(SITE_ROOT, 'templates')
