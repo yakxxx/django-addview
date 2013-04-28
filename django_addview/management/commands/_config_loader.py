@@ -14,11 +14,11 @@ hdlr.setFormatter(formatter)
 hdlr2.setFormatter(formatter)
 logger.addHandler(hdlr)
 logger.addHandler(hdlr2)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
 
 PROJ_ROOT = os.path.dirname(os.path.realpath(django.__file__))
 
 config = {
     'local_template_dir': os.path.join('{app_path}', 'templates'),
-    'global_template_dir': getattr(settings, 'GLOBAL_TEMPLATE_DIR', None)
+    'global_template_dir': getattr(settings, 'ADDVIEW_GLOBAL_TEMPLATE_DIR', None)
 }

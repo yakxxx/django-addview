@@ -163,4 +163,4 @@ LOGGING = {
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
-GLOBAL_TEMPLATE_DIR = os.path.join(SITE_ROOT, 'templates')
+ADDVIEW_GLOBAL_TEMPLATE_DIR = os.path.join(SITE_ROOT, 'templates')

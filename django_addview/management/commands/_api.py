@@ -51,7 +51,7 @@ class Api(object):
             view_type=self.view_type,
             params=self.view_params
         )
-        logger.warn(self.view_params)
+        logger.debug(self.view_params)
         return view_adder.select_template_name()
 
     def get_template_filenames(self):

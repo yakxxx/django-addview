@@ -24,6 +24,22 @@ Django-addview provides you with a simple ncurses based gui to add new class-bas
 
 `./manage.py addview app_name`
 
+## Configuration
+Django-addview expects only one config variable. It's : `ADDVIEW_GLOBAL_TEMPLATE_DIR = ...`
+which points to directory where you keep your project templates 
+(It's good practice to keep templates inside one directory per project unless you write reusable app).
+
+Django-addview can create your views in two locations. One is `ADDVIEW_GLOBAL_TEMPLATE_DIR` and second is `templates`
+directory inside your apps directory. You choose between then while adding view in gui.
+
+Example of configuration:
+
+```
+SITE_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
+ADDVIEW_GLOBAL_TEMPLATE_DIR = os.path.join(SITE_ROOT, 'templates')
+
+```
+
 ## Screenshots
 ![screenshot 1](/_screenshots/addview1.png?raw=true)
 ![screenshot 2](/_screenshots/addview2.png?raw=true)
