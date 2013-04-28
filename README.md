@@ -30,7 +30,7 @@ which points to directory where you keep your project templates
 (It's good practice to keep templates inside one directory per project unless you write reusable app).
 
 Django-addview can create your views in two locations. One is `ADDVIEW_GLOBAL_TEMPLATE_DIR` and second is `templates`
-directory inside your apps directory. You choose between then while adding view in gui.
+directory inside your apps directory. You choose between them while adding view in gui.
 
 Example of configuration:
 
