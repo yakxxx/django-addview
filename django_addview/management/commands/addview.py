@@ -66,6 +66,10 @@ class MyApplication(npyscreen.NPSAppManaged):
              TemplateForm,
              name="Template form"
         )
+        self.addForm(
+            'FunctionViewParamsForm',
+            FunctionViewParamsForm,
+            name="Function view form")
 
 
 class Command(BaseCommand):

@@ -26,18 +26,33 @@ class BaseViewAdder(object):
         self.params = params
 
     def add_view(self):
+        logger.debug('ADD VIEW:')
+        logger.debug(self.view_type)
+        logger.debug(self.params)
         if self.view_type == 'function_view':
             self.add_function_view()
         else:
             self.add_cbv_view()
 
-    def add_function_view(self, view_type, params):
-        raise NotImplemented()
+    def add_function_view(self):
+        code = self.generate_function_view()
+        self.save_view(code)
+        self.update_view_imports(
+            'django.shortcuts',
+            'render'
+        )
+        self.create_template()
+        self.update_urls()
+        code = self.generate_test()
+        self.add_test(code)
 
     def add_cbv_view(self):
         code = self.generate_cbv_view()
         self.save_view(code)
-        self.update_view_imports()
+        self.update_view_imports(
+            'django.views.generic',
+             self.view_type
+        )
         self.create_template()
         self.update_urls()
         code = self.generate_test()
@@ -46,13 +61,16 @@ class BaseViewAdder(object):
     def generate_cbv_view(self):
         raise NotImplementedError()
 
+    def generate_function_view(self):
+        raise NotImplementedError()
+
     def save_view(self, code):
         raise NotImplementedError()
 
     def create_template(self):
         raise NotImplementedError()
 
-    def update_url(self):
+    def update_urls(self):
         raise NotImplementedError()
 
     def generate_test(self):
@@ -64,6 +82,16 @@ class BaseViewAdder(object):
 
 class DefaultViewAdder(BaseViewAdder):
     indent = '    '
+
+    def generate_function_view(self):
+        code = "def {function_name}(request):\n".format(
+            function_name=self.params['function_name']
+        )
+        code += "{indent}return render(request, '{tpl}')\n".format(
+            indent=self.indent,
+            tpl=self.select_template_name()
+        )
+        return code
 
     def generate_cbv_view(self):
         code = "class {class_name}({view_type}):\n".format(
@@ -102,7 +130,7 @@ class DefaultViewAdder(BaseViewAdder):
             ))
             return
 
-    def update_view_imports(self):
+    def update_view_imports(self, _from, _import):
         try:
             view_file = open(
                 os.path.join(app_path(self.app_name), 'views.py'),
@@ -118,7 +146,7 @@ class DefaultViewAdder(BaseViewAdder):
 
         lines = view_content.split('\n')
 
-        self._insert_import(lines, 'django.views.generic', self.view_type)
+        self._insert_import(lines, _from, _import)
 
         if self.params.get('model', None):
             self._insert_import(
@@ -148,8 +176,11 @@ class DefaultViewAdder(BaseViewAdder):
 
         tpl_dir = self._select_template_dir()
         if not tpl_dir:
-            logger.error('No tpl dir set. Template not created.')
+            logger.error(
+                'No tpl dir set:{0}. Template not created.'.format(tpl_dir)
+            )
             return
+
         if not os.path.isdir(tpl_dir):
             try:
                 os.mkdir(tpl_dir)
@@ -187,8 +218,17 @@ class DefaultViewAdder(BaseViewAdder):
 
         if not tpl_path:
             tpl_suffix = self.params.get('template_name_suffix', '')
-            class_name = self.params.get('class_name')
-            file_name = camel2under(class_name) + tpl_suffix + '.html'
+            class_name = self.params.get('class_name', None)
+            function_name = self.params.get('function_name', None)
+
+            if class_name:
+                file_name = camel2under(class_name) + tpl_suffix + '.html'
+            elif function_name:
+                file_name = camel2under(function_name) + '.html'
+            else:
+                logger.error("No file_name nor class_name provided")
+                assert False, "It shoudln't happen"
+
             tpl_path = '{0}/{1}'.format(self.app_name, file_name)
         return tpl_path
 
@@ -230,7 +270,8 @@ class DefaultViewAdder(BaseViewAdder):
         self._insert_import(
             urls_lines,
             '{0}.views'.format(self.app_name),
-             self.params.get('class_name')
+             self.params.get('class_name', None) or \
+                    self.params.get('function_name')
         )
         urls_content = "\n".join(urls_lines)
         urls_content = self._add_pattern(urls_content)
@@ -289,17 +330,25 @@ class DefaultViewAdder(BaseViewAdder):
         if params[len(params) - 1] != ',':
             params += ','
         params += '\n{indent}'.format(indent=self.indent)
+
+        if self.params.get('class_name', None):
+            appendix = '.as_view()'
+        else:
+            appendix = ''
+
         if self.params.get('url_name', None):
-            tpl = ('url({regexp}, {class_name}.as_view()'
+            tpl = ('url({regexp}, {name}{appendix}'
                 ', name={url_name}),\n')
         else:
-            tpl = 'url({regexp}, {class_name}.as_view()),\n'
+            tpl = 'url({regexp}, {name}{appendix}),\n'
 
         params += \
             tpl.format(
                 regexp=self.params.get('url_pattern', ''),
-                class_name=self.params.get('class_name'),
-                url_name=self.params.get('url_name', '')
+                name=self.params.get('class_name', None) or\
+                            self.params.get('function_name'),
+                url_name=self.params.get('url_name', ''),
+                appendix=appendix,
             )
 
         return re.sub(
@@ -308,4 +357,3 @@ class DefaultViewAdder(BaseViewAdder):
             urls_content,
             flags=re.DOTALL
         )
-

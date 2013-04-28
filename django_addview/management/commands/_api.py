@@ -102,7 +102,7 @@ class Api(object):
     def update_view_params(self, view_params):
         self.view_params.update(view_params)
         logger.debug('create_view')
-        logger.debug(view_params)
+        logger.debug(self.view_params)
         logger.debug(self.view_type)
 
     def add_view(self):

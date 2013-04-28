@@ -172,7 +172,7 @@ class TestViewCreation(unittest.TestCase):
         self.assertRegexpMatches(file_text, regexp)
 
     def test_update_import(self):
-        self.adder.update_view_imports()
+        self.adder.update_view_imports('django.views.generic', 'DetailView')
         f = open(os.path.join(app_path('test_app'), 'views.py'))
         file_text = f.read()
         f.close()
@@ -189,9 +189,9 @@ class TestViewCreation(unittest.TestCase):
         )
         self.assertRegexpMatches(file_text, reg2)
 
-        self.adder.update_view_imports()
-        self.adder.update_view_imports()
-        self.adder.update_view_imports()
+        self.adder.update_view_imports('django.views.generic', 'DetailView')
+        self.adder.update_view_imports('django.views.generic', 'DetailView')
+        self.adder.update_view_imports('django.views.generic', 'DetailView')
 
         f = open(os.path.join(app_path('test_app'), 'views.py'))
         file_text = f.read()
@@ -214,7 +214,7 @@ class TestViewCreation(unittest.TestCase):
         f.write(cont)
         f.close()
 
-        self.adder.update_view_imports()
+        self.adder.update_view_imports('django.views.generic', 'DetailView')
         f = open(os.path.join(app_path('test_app'), 'views.py'))
         file_text = f.read()
         f.close()
@@ -251,6 +251,22 @@ class TestCodeGeneration(unittest.TestCase):
                 continue
             self.assertRegexpMatches(line, r' {4}')
 
+    def test_function_generation(self):
+        adder2 = DefaultViewAdder(
+            'test_app',
+            'function_view',
+            params={
+             'function_name': 'test_func',
+             'url_name': "'urlik'",
+             'url_pattern': "r'^m/(?P<page>\d+)/$'"
+        })
+        code = adder2.generate_function_view()
+        self.assertEqual(
+            code,
+            ('def test_func(request):\n'
+             '    return render(request, \'test_app/test_func.html\')\n')
+        )
+
     def test_camel2under(self):
         self.assertEqual(
             camel2under('MainProgramThread'), 'main_program_thread'
@@ -279,6 +295,30 @@ class TestCodeGeneration(unittest.TestCase):
             _import='TestView'
         )
         self.assertEqual(lines[3], 'from test_app.views import TestView')
+
+    def test_add_pattern_function_view(self):
+        txt = '''urlpatterns = patterns('',
+    url(r'^$', MainView.as_view(), name=MainView.url_name),
+    url(r'^m/(?P<page>\d+)/$' , MainView.as_view(), name=MainView.url_name),
+    url(r'^poczekalnia/$', PendingView.as_view(), name=PendingView.url_name),
+)'''
+        adder = DefaultViewAdder(
+            'test_app',
+            'function_view',
+            params={
+             'function_name': 'test_view',
+             'url_name': "'urlik'",
+             'url_pattern': "r'^m/(?P<page>\d+)/$'"
+            })
+        self.assertEqual(
+            adder._add_pattern(txt),
+                '''urlpatterns = patterns('',
+    url(r'^$', MainView.as_view(), name=MainView.url_name),
+    url(r'^m/(?P<page>\d+)/$' , MainView.as_view(), name=MainView.url_name),
+    url(r'^poczekalnia/$', PendingView.as_view(), name=PendingView.url_name),
+    url(r'^m/(?P<page>\d+)/$', test_view, name='urlik'),
+)'''
+        )
 
     def test_find_patterns(self):
         txt = '''urlpatterns = patterns('',

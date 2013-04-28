@@ -389,9 +389,29 @@ class ListViewParamsForm(ViewForm, MultipleObjectMixin,
 
 
 class FunctionViewParamsForm(npyscreen.Form):
-    def __create(self):
-        self.add_later(
+    def __init__(self, *args, **kwargs):
+        super(FunctionViewParamsForm, self).__init__(*args, **kwargs)
+        self._view_params = {}
+
+    def create(self):
+        self.function_name = self.add(
             npyscreen.TitleText,
-            attr_name='myName',
-            name='Name'
+            attr_name='function_name',
+            name='function name'
+        )
+
+    def afterEditing(self):
+        self._save_parameters()
+        API.update_view_params(self._view_params)
+        if self._view_params.get('function_name', None):
+            self.parentApp.NEXT_ACTIVE_FORM = 'TemplateForm'
+        else:
+            npyscreen.notify_wait(
+                "You have to set function_name",
+                 "Form Validation"
+            )
+
+    def _save_parameters(self):
+        self._view_params.update(
+            {'function_name': self.function_name.value}
         )
