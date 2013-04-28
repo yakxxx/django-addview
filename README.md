@@ -2,15 +2,15 @@
 
 ## What it does?
 
-You never remember Class-Based-Views parameters?
-Are you tired of reiterating over same mundane steps while adding new view?
+Can't remember Class-Based-Views parameters?
+Are you tired of reiterating the same mundane steps while adding a new view?
 Try django-addview.
 
 ## How it works?
 
-Django-addview provides you a simple ncurses based gui to add new class-based or functional view.
+Django-addview provides you with a simple ncurses based gui to add new class-based or functional view.
 
-* Creates class declaration (fill needed parameters, select model from dropdown etc.)
+* Creates class declaration (fill needed parameters, select a model from the dropdown etc.)
 * Remembers all class-based attributes for you
 * Creates template (empty, or copied from existing one)
 * Adds entry to __urls.py__
