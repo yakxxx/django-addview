@@ -6,3 +6,6 @@ env/
 /django_addview.egg-info
 /build
 /dist
+.project
+.pydevproject
+.settings/
