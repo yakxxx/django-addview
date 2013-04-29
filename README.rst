@@ -43,7 +43,9 @@ Usage
 *Remember:* What you type inside app is what you get inside your code,
 so if you want to have a string you have to quote it. For example:
 
-''' template\_name = "test\_app/my\_view.html" '''
+::
+
+    template_name = "test_app/my_view.html"
 
 Configuration
 -------------
