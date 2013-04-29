@@ -20,6 +20,15 @@ Django-addview provides you with a simple ncurses based gui to add new class-bas
 
 `pip install django_addview`
 
+And add to settings.py:
+
+```
+INSTALLED_APPS = (
+    ...
+    'polls',
+)
+```
+
 ## Usage
 
 `./manage.py addview app_name`
