@@ -33,6 +33,13 @@ INSTALLED_APPS = (
 
 `./manage.py addview app_name`
 
+_Remember:_ What you type inside app is what you get inside your code, so if you want to have a string you have to quote it.
+For example:
+
+'''
+template_name = "test_app/my_view.html"
+'''
+
 ## Configuration
 Django-addview expects only one config variable. It's : `ADDVIEW_GLOBAL_TEMPLATE_DIR = ...`
 which points to directory where you keep your project templates 
