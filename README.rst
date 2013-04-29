@@ -40,12 +40,12 @@ Usage
 
 ``./manage.py addview app_name``
 
-*Remember:* What you type inside app is what you get inside your code,
+**Remember:** What you type inside app is what you get inside your code,
 so if you want to have a string you have to quote it. For example:
 
 ::
 
-    template_name = "test_app/my_view.html"
+    template_name       "test_app/my_view.html"
 
 Configuration
 -------------
