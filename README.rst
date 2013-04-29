@@ -26,6 +26,15 @@ Installation
 
 ``pip install django_addview``
 
+And add to settings.py:
+
+::
+
+    INSTALLED_APPS = (
+        ...
+        'django_addview',
+    )
+
 Usage
 -----
 

@@ -25,7 +25,7 @@ And add to settings.py:
 ```
 INSTALLED_APPS = (
     ...
-    'polls',
+    'django_addview',
 )
 ```
 
